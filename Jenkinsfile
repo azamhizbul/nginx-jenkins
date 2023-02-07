@@ -10,27 +10,14 @@ def resultlog
 //PREPARE 
 def env_file = 'local-env'
 def nexus_credentials_id = 'dockerhub_azam'
-def nexus_base_url = 'https://nexus.posindonesia.co.id'
 def appFullVersion
-
-def nexus_docker_url_ip = "10.24.7.10:8087"
-def nexus_docker_url = "docker.posindonesia.co.id"
 def container_repo = "azamhizbul"
 
 def pomappName = "nginx-jenkins"
 
-// Docker host Deployment
-def ssh_credentials_id_prod = "	server-prod-validasiposaja"
-def ssh_host_prod = "10.29.41.56"
-def ssh_credentials_id = "dev-kurlog-onprem"
-def ssh_host = "10.60.64.47"
-def remote = [:]
-
 def isDevelopment = false
 def isProduction = false
 def skipBuildDocker = false
-def skipKubernetDev = false
-def skipKubernetProd = false
 
 node {
     stage('Checkout') {
@@ -53,12 +40,6 @@ node {
         if(resultlog.contains("skipBuild")){
             skipBuildDocker = true
         } 
-        if(resultlog.contains("kubernetDev")){
-            skipKubernetDev = true
-        } 
-        if(isProduction) {
-            isDevelopment = false
-        }
         sh "echo development: ${isDevelopment}, production: ${isProduction}, skipBuilDockerDev: ${skipBuildDocker}"
     }   
 
@@ -120,15 +101,6 @@ node {
     }
 
     stage ('Deploy Docker'){
-        // def checkContainer = false
-        // try {
-        //     sh "docker ps -a -f name=${pomappName}"
-        //     checkContainer = true
-        // }catch (e) {
-        //     checkContainer = false
-        //     echo 'No restart deployment' + e.toString()
-        // }
-
         sh """
                 if docker ps -a --format '{{.Names}}' | grep -Eq "^${pomappName}\$"; then
                   docker stop ${pomappName}
@@ -138,13 +110,6 @@ node {
                 fi
        
         """
-
-        // echo "${checkContainer}"
-        // if(checkContainer){
-        //     sh """ docker stop ${pomappName} """
-        //     sh """ docker rm ${pomappName} """
-        // }
-
         sh """ docker run -d -p 3000:80 --name=${pomappName} ${container_repo}/${pomappName}:latest """
     }
 
