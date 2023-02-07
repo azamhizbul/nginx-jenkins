@@ -120,20 +120,30 @@ node {
     }
 
     stage ('Deploy Docker'){
-        def checkContainer = false
-        try {
-            sh "docker ps -a -f name=${pomappName}"
-            checkContainer = true
-        }catch (e) {
-            checkContainer = false
-            echo 'No restart deployment' + e.toString()
-        }
+        // def checkContainer = false
+        // try {
+        //     sh "docker ps -a -f name=${pomappName}"
+        //     checkContainer = true
+        // }catch (e) {
+        //     checkContainer = false
+        //     echo 'No restart deployment' + e.toString()
+        // }
 
-        echo "${checkContainer}"
-        if(checkContainer){
-            sh """ docker stop ${pomappName} """
-            sh """ docker rm ${pomappName} """
-        }
+        sh """
+                if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^${pomappName}\$"; then
+                  docker stop ${pomappName}
+                  docker rm ${pomappName}
+                else
+                  echo 'does not exist'
+                fi
+       
+        """
+
+        // echo "${checkContainer}"
+        // if(checkContainer){
+        //     sh """ docker stop ${pomappName} """
+        //     sh """ docker rm ${pomappName} """
+        // }
 
         sh """ docker run -d -p 3000:80 --name=${pomappName} ${container_repo}/${pomappName}:latest """
     }
