@@ -120,9 +120,16 @@ node {
     }
 
     stage ('Deploy Docker'){
-        def checkContainer = sh(script: "docker ps -a -f name=${pomappName}", returnStdout: true)
+        def checkContainer = false
+        try {
+            sh "docker ps -a -f name=${pomappName}"
+            checkContainer = true
+        }catch (e) {
+            checkContainer = false
+            echo 'No restart deployment' + e.toString()
+        }
+
         echo "${checkContainer}"
-        
         if(checkContainer){
             sh """ docker stop ${pomappName} """
             sh """ docker rm ${pomappName} """
