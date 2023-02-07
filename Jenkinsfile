@@ -130,7 +130,7 @@ node {
         // }
 
         sh """
-                if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^${pomappName}\$"; then
+                if docker ps -a --format '{{.Names}}' | grep -Eq "^${pomappName}\$"; then
                   docker stop ${pomappName}
                   docker rm ${pomappName}
                 else
